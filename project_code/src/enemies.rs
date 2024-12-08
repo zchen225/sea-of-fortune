@@ -144,6 +144,7 @@ pub fn spawn_enemy(
                     alive: true,
                     animation_index: 0,
                     hp: KRAKEN_MAX_HP,
+                    target_id: -1,
                 },
                 EnemyTag,
             ));
@@ -180,6 +181,7 @@ pub fn spawn_enemy(
                     alive: true,
                     animation_index: 0,
                     hp: GHOSTSHIP_MAX_HP,
+                    target_id: -1,
                 },
                 EnemyTag,
             ));

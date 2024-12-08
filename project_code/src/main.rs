@@ -63,7 +63,7 @@ fn main() {
     println!("Starting Client");
 
     //connect to server
-    let udp_addr = "192.168.1.159:0";
+    let udp_addr = "127.0.0.1:0";
     //let tcp_addr = "127.0.0.1:8000";
 
     let udp_socket = UdpSocket::bind(udp_addr).unwrap();
@@ -77,7 +77,7 @@ fn main() {
     let mut player = Player::default();
 
     let server = Server {
-        addr: "192.168.1.159:5000".to_string(),
+        addr: "127.0.0.1:5000".to_string(),
     };
 
     let mut joined = false;
@@ -289,7 +289,8 @@ pub fn update(
                         if e.id != enemy.id || !e.alive {
                             continue;
                         }
-                        //transform.translation = e.pos;
+                        transform.translation = e.pos;
+
                         found = true;
                         break;
                     }

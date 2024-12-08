@@ -44,6 +44,7 @@ fn main() {
         animation_index: 0,
         alive: true,
         hp: KRAKEN_MAX_HP,
+        target_id: -1,
     });
 
     update.list.push(Enemy {
@@ -53,6 +54,7 @@ fn main() {
         animation_index: 0,
         alive: true,
         hp: KRAKEN_MAX_HP,
+        target_id: -1,
     });
 
     cooldowns.list.push(CD {
@@ -68,6 +70,7 @@ fn main() {
         animation_index: 0,
         alive: true,
         hp: GHOSTSHIP_MAX_HP,
+        target_id: -1,
     });
 
     update.list.push(Enemy {
@@ -77,6 +80,7 @@ fn main() {
         animation_index: 0,
         alive: true,
         hp: GHOSTSHIP_MAX_HP,
+        target_id: -1,
     });
 
     cooldowns.list.push(CD {
@@ -87,9 +91,7 @@ fn main() {
 
     println!("Ocean size: {}", ocean_map.map.len());
 
-    let result = UdpSocket::bind("192.168.1.159:5000");
-
-    //"71.112.217.220:5000"
+    let result = UdpSocket::bind("0.0.0.0:5000");
 
     if result.is_ok() {
         let udp_socket = result.unwrap();
@@ -114,6 +116,7 @@ fn main() {
             .insert_resource(UDP { socket: udp_socket })
             .insert_resource(cooldowns)
             .add_systems(Update, handle)
+            .add_systems(Update, enemy_movement)
             //.add_systems(Update, enemy_proj_handle)
             .add_plugins(DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -414,6 +417,80 @@ pub fn enemy_proj_handle(
             println!("Player #{} is in range of entity [{}]", player.id, enemy.id);
             projectiles.list.push(projectile);
             break;
+        }
+    }
+}
+
+pub fn enemy_movement(
+    mut enemies: ResMut<EnemyLists>,
+    mut projectiles: ResMut<Projectiles>,
+    players: ResMut<Players>,
+    mut cooldowns: ResMut<Cooldowns>,
+    time: Res<Time>,
+) {
+    for enemy in enemies.update.list.iter_mut() {
+        match enemy.etype {
+            KRAKEN => {
+                let kraken_translation = enemy.pos;
+
+                for player in players.player_array.iter() {
+                    let player_translation = player.pos;
+
+                    //Gets positions (Vec2) of the entities
+                    let player_position = player_translation.xy();
+                    let kraken_position = kraken_translation.xy();
+
+                    //Gets distance
+                    let distance_to_player = kraken_position.distance(player_position);
+
+                    //Check
+                    if distance_to_player > KRAKEN_AGRO_RANGE
+                        || distance_to_player <= KRAKEN_AGRO_STOP
+                    {
+                        continue;
+                    }
+
+                    //Gets direction projectile will be going
+                    let direction = (player_translation - kraken_translation).normalize();
+                    let velocity = direction * KRAKEN_MOVEMENT_SPEED;
+
+                    //Moves kraken
+                    enemy.pos += velocity * time.delta_seconds();
+                    break;
+                }
+            }
+            GHOSTSHIP => {
+                let ghostship_translation = enemy.pos;
+
+                for player in players.player_array.iter() {
+                    let player_translation = player.pos;
+
+                    //Gets positions (Vec2) of the entities
+                    let player_position = player_translation.xy();
+                    let ghostship_position = ghostship_translation.xy();
+
+                    //Gets distance
+                    let distance_to_player = ghostship_position.distance(player_position);
+
+                    //Check
+                    if distance_to_player > GHOSTSHIP_AGRO_RANGE
+                        || distance_to_player <= GHOSTSHIP_AGRO_STOP
+                    {
+                        continue;
+                    }
+
+                    //Gets direction projectile will be going
+                    let direction = (player_translation - ghostship_translation).normalize();
+                    let velocity = direction * GHOSTSHIP_MOVEMENT_SPEED;
+
+                    //Moves kraken
+                    enemy.pos += velocity * time.delta_seconds();
+                    break;
+                }
+            }
+            _ => {
+                println!("Undefined enemy type: {}", enemy.etype);
+            }
         }
     }
 }

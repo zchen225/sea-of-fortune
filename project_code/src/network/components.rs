@@ -119,6 +119,7 @@ pub struct Enemy {
     pub animation_index: usize,
     pub hp: f32,
     pub alive: bool,
+    pub target_id: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
